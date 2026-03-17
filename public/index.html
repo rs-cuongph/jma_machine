@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JMA XML Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">📡</span>
+        <div>
+          <span class="logo-title">JMA XML Machine</span>
+          <span class="logo-sub">Disaster Feed Simulator v2</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav-link active" href="#" id="navList" onclick="navigate('list')">📋 Event List</a>
+        <a class="nav-link" href="#" id="navCreate" onclick="navigate('create')">➕ Create Event</a>
+      </nav>
+      <div class="feed-pills">
+        <a class="feed-pill" href="/feed/extra.xml" target="_blank">/feed/extra.xml</a>
+        <a class="feed-pill" href="/feed/eqvol.xml" target="_blank">/feed/eqvol.xml</a>
+        <a class="feed-pill" href="/feed/other.xml" target="_blank">/feed/other.xml</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- PAGE: EVENT LIST -->
+    <div id="pagelist" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">📋 Event List</h1>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+          <button class="filter-btn" data-filter="earthquake" onclick="setFilter('earthquake')">🌍 Earthquake</button>
+          <button class="filter-btn" data-filter="tsunami" onclick="setFilter('tsunami')">🌊 Tsunami</button>
+          <button class="filter-btn" data-filter="weather" onclick="setFilter('weather')">⛈ Weather</button>
+          <button class="filter-btn" data-filter="landslide" onclick="setFilter('landslide')">⛰ Landslide</button>
+          <button class="filter-btn" data-filter="volcano" onclick="setFilter('volcano')">🌋 Volcano</button>
+        </div>
+      </div>
+      <div id="eventList" class="event-grid">
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">No events yet. <a href="#" onclick="navigate('create')">Create your first event →</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: CREATE EVENT -->
+    <div id="pagecreate" class="page">
+      <div class="page-header">
+        <h1 class="page-title">➕ Create Event</h1>
+      </div>
+      <div class="create-layout">
+        <!-- Type tabs + form -->
+        <div class="form-panel">
+          <div class="type-tabs">
+            <button class="type-tab active" data-type="earthquake" onclick="switchType('earthquake')">🌍 Earthquake</button>
+            <button class="type-tab" data-type="tsunami" onclick="switchType('tsunami')">🌊 Tsunami</button>
+            <button class="type-tab" data-type="weather" onclick="switchType('weather')">⛈ Weather</button>
+            <button class="type-tab" data-type="landslide" onclick="switchType('landslide')">⛰ Landslide</button>
+            <button class="type-tab" data-type="volcano" onclick="switchType('volcano')">🌋 Volcano</button>
+          </div>
+          <div id="formContainer" class="form-container">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" onclick="previewXml()">👁 Preview XML</button>
+            <button class="btn btn-primary" onclick="generateEvent()">✨ Generate & Save</button>
+          </div>
+        </div>
+        <!-- Preview panel -->
+        <div class="preview-panel">
+          <div class="preview-header">
+            <span>XML Preview</span>
+            <span class="preview-badge" id="previewBadge">-</span>
+          </div>
+          <pre class="xml-preview" id="xmlPreview"><span class="preview-hint">Click "Preview XML" to see the generated output</span></pre>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal for view XML -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span id="modalTitle">XML Content</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <pre class="modal-xml" id="modalXml"></pre>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

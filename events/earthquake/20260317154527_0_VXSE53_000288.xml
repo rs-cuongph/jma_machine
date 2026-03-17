@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
+  <Control>
+    <Title>震源・震度に関する情報</Title>
+    <DateTime>2024-01-01T06:00:00Z</DateTime>
+    <Status>通常</Status>
+    <EditorialOffice>気象庁本庁</EditorialOffice>
+    <PublishingOffice>気象庁</PublishingOffice>
+  </Control>
+  <Head xmlns="http://xml.kishou.go.jp/jmaxml1/informationBasis1/">
+    <Title>震源・震度に関する情報</Title>
+    <ReportDateTime>2024-01-01T15:00:00+09:00</ReportDateTime>
+    <TargetDateTime>2024-01-01T15:00:00+09:00</TargetDateTime>
+    <EventID>20260317154527</EventID>
+    <InfoType>発表</InfoType>
+    <Serial>1</Serial>
+    <InfoKind>地震情報</InfoKind>
+    <InfoKindVersion>1.0_0</InfoKindVersion>
+    <Headline>
+      <Text>01日15時00分ころ、地震がありました。</Text>
+    </Headline>
+  </Head>
+  <Body xmlns="http://xml.kishou.go.jp/jmaxml1/body/seismology1/" xmlns:jmx_eb="http://xml.kishou.go.jp/jmaxml1/elementBasis1/">
+    <Earthquake>
+      <OriginTime>2024-01-01T15:00:00+09:00</OriginTime>
+      <ArrivalTime>2024-01-01T15:00:00+09:00</ArrivalTime>
+      <Hypocenter>
+        <Area>
+          <Name>三陸沖</Name>
+          <Code type="震央地名">288</Code>
+          <jmx_eb:Coordinate description="北緯38.0度 東経142.9度 深さ10km">+38.0+142.9-10000/</jmx_eb:Coordinate>
+          
+          
+        </Area>
+        
+      </Hypocenter>
+      <jmx_eb:Magnitude type="Mj" description="Ｍ７．０">7</jmx_eb:Magnitude>
+    </Earthquake>
+    <Comments>
+      <ForecastComment codeType="固定付加文">
+        <Text>この地震による津波の心配はありません。</Text>
+        <Code></Code>
+      </ForecastComment>
+      
+    </Comments>
+  </Body>
+</Report>

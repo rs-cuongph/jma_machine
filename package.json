@@ -1,0 +1,16 @@
+{
+  "name": "xml_machine",
+  "version": "1.0.0",
+  "description": "JMA XML Feed Machine - Test server simulating JMA disaster XML feeds",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["jma", "xml", "disaster", "test"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
