@@ -7,10 +7,16 @@
 const { spawn } = require('child_process');
 const PORT = process.env.PORT || '3000';
 
+// Cho phép chỉ định path cloudflared qua biến môi trường (Windows dễ lỗi PATH)
+// Ví dụ: CLOUDFLARED_PATH="C:\\Program Files\\cloudflared\\cloudflared.exe"
+const CLOUDFLARED_BIN = process.env.CLOUDFLARED_PATH || 'cloudflared';
+
 console.log(`\n🔄 Starting Cloudflare Quick Tunnel → http://localhost:${PORT} ...\n`);
 
-const cf = spawn('cloudflared', ['tunnel', '--url', `http://localhost:${PORT}`], {
+const cf = spawn(CLOUDFLARED_BIN, ['tunnel', '--url', `http://localhost:${PORT}`], {
   stdio: ['ignore', 'pipe', 'pipe'],
+  // shell=true giúp chạy được file .cmd trên Windows
+  shell: process.platform === 'win32',
 });
 
 let urlFound = false;

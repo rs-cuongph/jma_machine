@@ -4,6 +4,11 @@ const feedsRouter = require('./routes/feeds');
 const dataRouter = require('./routes/data');
 const eventsRouter = require('./api/events');
 
+// Load .env if present
+try {
+  require('dotenv').config();
+} catch (_) {}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
