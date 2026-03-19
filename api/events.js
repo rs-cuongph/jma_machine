@@ -101,6 +101,21 @@ router.delete('/events/:type/:filename', (req, res) => {
   res.json({ success: true });
 });
 
+// DELETE /api/events — delete ALL generated XML files
+router.delete('/events', (req, res) => {
+  let count = 0;
+  for (const cat of CATEGORIES) {
+    const dir = path.join(EVENTS_DIR, cat);
+    if (!fs.existsSync(dir)) continue;
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
+    for (const f of files) {
+      fs.unlinkSync(path.join(dir, f));
+      count++;
+    }
+  }
+  res.json({ success: true, deleted: count });
+});
+
 function generateXml(type, data) {
   switch (type) {
     case 'earthquake': return generateEarthquakeXml(data);

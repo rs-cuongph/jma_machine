@@ -106,6 +106,17 @@ async function deleteEvent(cat, filename) {
 }
 window.deleteEvent = deleteEvent;
 
+async function deleteAllEvents() {
+  if (!confirm('Delete ALL generated events? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/api/events', { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) { showToast(`Deleted ${data.deleted} events`, 'success'); loadEvents(); }
+    else showToast(data.error || 'Delete failed', 'error');
+  } catch (e) { showToast('Failed to delete events', 'error'); }
+}
+window.deleteAllEvents = deleteAllEvents;
+
 function copyUrl(url) {
   navigator.clipboard.writeText(window.location.origin + url).then(() => showToast('URL copied!','success'));
 }

@@ -1,0 +1,6 @@
+node_modules/
+
+# Ignore generated event XML files but keep folders via .gitkeep
+events/**/*.xml
+
+.env
