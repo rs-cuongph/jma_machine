@@ -37,7 +37,7 @@ function getEntriesForCategories(categories, baseUrl) {
 
 // GET /feed/extra.xml → weather + landslide
 router.get('/extra.xml', (req, res) => {
-  const baseUrl = `${req.protocol}://${req.headers.host}`;
+  const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.headers.host}`;
   const entries = getEntriesForCategories(['weather', 'landslide'], baseUrl);
   const xml = buildFeed({ title: '高頻度（随時）', selfUrl: `${baseUrl}/feed/extra.xml`, entries });
   res.set('Content-Type', 'application/xml; charset=utf-8').send(xml);
@@ -45,7 +45,7 @@ router.get('/extra.xml', (req, res) => {
 
 // GET /feed/eqvol.xml → earthquake + volcano
 router.get('/eqvol.xml', (req, res) => {
-  const baseUrl = `${req.protocol}://${req.headers.host}`;
+  const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.headers.host}`;
   const entries = getEntriesForCategories(['earthquake', 'volcano'], baseUrl);
   const xml = buildFeed({ title: '高頻度（地震火山）', selfUrl: `${baseUrl}/feed/eqvol.xml`, entries });
   res.set('Content-Type', 'application/xml; charset=utf-8').send(xml);
@@ -53,7 +53,7 @@ router.get('/eqvol.xml', (req, res) => {
 
 // GET /feed/other.xml → tsunami
 router.get('/other.xml', (req, res) => {
-  const baseUrl = `${req.protocol}://${req.headers.host}`;
+  const baseUrl = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.headers.host}`;
   const entries = getEntriesForCategories(['tsunami'], baseUrl);
   const xml = buildFeed({ title: '随時（その他）', selfUrl: `${baseUrl}/feed/other.xml`, entries });
   res.set('Content-Type', 'application/xml; charset=utf-8').send(xml);
