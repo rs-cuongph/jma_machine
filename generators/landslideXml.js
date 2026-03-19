@@ -61,7 +61,7 @@ function generateLandslideXml(data) {
     <PublishingOffice>${esc(data.publishingOffice || data.editorialOffice || '気象庁')}</PublishingOffice>
   </Control>
   <Head xmlns="http://xml.kishou.go.jp/jmaxml1/informationBasis1/">
-    <Title>${esc(data.prefectureName + 'の土砂災害警戒情報')}</Title>
+    <Title>土砂災害警戒情報</Title>
     <ReportDateTime>${jst}</ReportDateTime>
     <TargetDateTime>${jst}</TargetDateTime>
     <EventID>${esc(eventId)}</EventID>

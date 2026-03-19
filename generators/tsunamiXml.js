@@ -15,7 +15,7 @@ const { toJST, formatEventId, esc } = require('./earthquakeXml');
 
 // Tsunami warning kind definitions
 const TSUNAMI_KIND_MAP = {
-  '53': { name: '大津波警報', lastName: '津波なし', lastCode: '00' },
+  '53': { name: '大津波警報：発表', lastName: '津波なし', lastCode: '00' },
   '51': { name: '津波警報', lastName: '津波なし', lastCode: '00' },
   '62': { name: '津波注意報', lastName: '津波なし', lastCode: '00' },
   '71': { name: '津波予報（若干の海面変動）', lastName: '津波なし', lastCode: '00' },
@@ -38,6 +38,18 @@ function generateTsunamiXml(data) {
     }
     kindGroups[a.kindCode].areas.push({ name: a.areaName, code: a.areaCode });
   }
+
+  // Build Head/Title dynamically from actual warning kinds present
+  // Order: 大津波警報 > 津波警報 > 津波注意報 > 津波予報
+  const HEAD_TITLE_PARTS = [
+    { codes: ['53'], label: '大津波警報' },
+    { codes: ['51'], label: '津波警報' },
+    { codes: ['62'], label: '津波注意報' },
+    { codes: ['71','00','04'], label: '津波予報' },
+  ];
+  const presentCodes = new Set(warningAreas.map(a => a.kindCode));
+  const headTitleParts = HEAD_TITLE_PARTS.filter(p => p.codes.some(c => presentCodes.has(c))).map(p => p.label);
+  const headTitle = headTitleParts.length ? headTitleParts.join('・') : '津波警報・注意報・予報';
 
   const headlineInfoXml = Object.values(kindGroups).map(kg => `      <Item>
         <Kind><Name>${esc(kg.name)}</Name><Code>${kg.code}</Code></Kind>
@@ -102,7 +114,7 @@ function generateTsunamiXml(data) {
 \t<PublishingOffice>${esc(data.publishingOffice || '気象庁')}</PublishingOffice>
 </Control>
 <Head xmlns="http://xml.kishou.go.jp/jmaxml1/informationBasis1/">
-\t<Title>大津波警報・津波警報・津波注意報・津波予報（${esc(data.headTitle || '全国')}）</Title>
+\t<Title>${esc(headTitle)}</Title>
 \t<ReportDateTime>${jst}</ReportDateTime>
 \t<TargetDateTime>${jst}</TargetDateTime>
 \t<EventID>${eventId}</EventID>

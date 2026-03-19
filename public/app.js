@@ -557,7 +557,7 @@ function formVolcano() {
   <div class="form-section-title">Alert Level 警戒レベル</div>
   <div class="form-row">
     <div class="form-field"><label class="form-label">Current Level 現在レベル</label>
-      <select class="form-select" id="f-alertLevelCode">
+      <select class="form-select" id="f-alertLevelCode" onchange="updateVolcanoWarningInfo()">
         <option value="11">Lv1 活火山であることに留意</option>
         <option value="12">Lv2 火口周辺規制</option>
         <option value="13" selected>Lv3 入山規制</option>
@@ -565,7 +565,7 @@ function formVolcano() {
         <option value="15">Lv5 避難</option>
       </select></div>
     <div class="form-field"><label class="form-label">Previous Level 前回レベル</label>
-      <select class="form-select" id="f-prevAlertLevelCode">
+      <select class="form-select" id="f-prevAlertLevelCode" onchange="updateVolcanoWarningInfo()">
         <option value="11" selected>Lv1 活火山であることに留意</option>
         <option value="12">Lv2 火口周辺規制</option>
         <option value="13">Lv3 入山規制</option>
@@ -576,6 +576,8 @@ function formVolcano() {
   <div class="form-row wide">
     <div class="form-field"><label class="form-label">Condition 状況</label>
       <select class="form-select" id="f-condition"><option>引上げ</option><option>引下げ</option><option>継続</option></select></div>
+  </div>
+  <div id="volcanoWarningInfo" style="margin-top:8px;padding:10px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.18);border-radius:8px;font-size:12px;line-height:1.7;color:var(--text2);">
   </div>
 </div>
 <div class="form-section">
@@ -618,6 +620,27 @@ window.addVolcanoMunRow = function(name='', code='') {
 };
 function addVolcanoMunRow(...args) { return window.addVolcanoMunRow(...args); }
 
+// Warning info lookup (mirrors ALERT_LEVELS in volcanoXml.js)
+const VOLCANO_ALERT_INFO = {
+  '11': { warningName: '噴火予報', warningCode: '05', defenseName: '活火山であることに留意', defenseCode: '45' },
+  '12': { warningName: '火口周辺警報', warningCode: '02', defenseName: '火口周辺警報：火口周辺規制', defenseCode: '44' },
+  '13': { warningName: '火口周辺警報', warningCode: '02', defenseName: '火口周辺警報：入山規制等', defenseCode: '43' },
+  '14': { warningName: '噴火警報（居住地域）', warningCode: '01', defenseName: '噴火警報：高齢者等避難等', defenseCode: '42' },
+  '15': { warningName: '噴火警報（居住地域）', warningCode: '01', defenseName: '噴火警報：避難等', defenseCode: '41' },
+};
+
+window.updateVolcanoWarningInfo = function() {
+  const el = document.getElementById('volcanoWarningInfo');
+  if (!el) return;
+  const cur = document.getElementById('f-alertLevelCode')?.value || '13';
+  const prev = document.getElementById('f-prevAlertLevelCode')?.value || '11';
+  const ci = VOLCANO_ALERT_INFO[cur] || VOLCANO_ALERT_INFO['13'];
+  const pi = VOLCANO_ALERT_INFO[prev] || VOLCANO_ALERT_INFO['11'];
+  el.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">⚡ Generated Warning Info (自動算出)</div>
+    <div>🔹 <b>対象市町村等:</b> ${ci.warningName}（code: ${ci.warningCode}）← 前回: ${pi.warningName}（${pi.warningCode}）</div>
+    <div>🔹 <b>防災対応等:</b> ${ci.defenseName}（code: ${ci.defenseCode}）← 前回: ${pi.defenseName}（${pi.defenseCode}）</div>`;
+};
+function updateVolcanoWarningInfo() { window.updateVolcanoWarningInfo(); }
 
 // Pre-fill volcano rows on form render
 function ensureVolcanoRows() {
@@ -626,6 +649,7 @@ function ensureVolcanoRows() {
     addVolcanoMunRow('群馬県嬬恋村', '1042500');
     addVolcanoMunRow('長野県小諸市', '2020800');
   }
+  updateVolcanoWarningInfo();
 }
 
 // Override switchType to add init for volcano

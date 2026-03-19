@@ -53,7 +53,10 @@ function generateWeatherXml(data) {
   // City-level Headline/Information block (市町村等)
   const cityHeadlineXml = buildCityHeadlineInfo(municipalityItems);
 
-  // Body Warning (detail)
+  // Body Warning — prefecture level (府県予報区等)
+  const bodyPrefXml = buildBodyPrefectureWarning(warningItems, data);
+
+  // Body Warning — municipality level (市町村等)
   const bodyItemsXml = municipalityItems.map(m => buildBodyItem(m)).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -81,18 +84,8 @@ ${cityHeadlineXml}
 </Headline>
 </Head>
 <Body xmlns="http://xml.kishou.go.jp/jmaxml1/body/meteorology1/">
-<Warning type="気象警報・注意報">
-<Item>
-<Kind>
-<Name>発表警報・注意報事項</Name>
-</Kind>
-<Areas codeType="気象情報／府県予報区・細分区域等">
-<Area>
-<Name>${esc(data.prefectureName || '')}</Name>
-<Code>${data.prefectureCode || ''}</Code>
-</Area>
-</Areas>
-</Item>
+${bodyPrefXml}
+<Warning type="気象警報・注意報（市町村等）">
 ${bodyItemsXml}
 </Warning>
 </Body>
@@ -171,19 +164,56 @@ ${g.areas.map(a => `<Area><Name>${esc(a.name)}</Name><Code>${a.code}</Code></Are
 </Information>`;
 }
 
+/**
+ * Build Body Warning block for prefecture level
+ * Type: "気象警報・注意報（府県予報区等）"
+ * Structure: Kind(s) with Status → Area directly (no Areas wrapper)
+ */
+function buildBodyPrefectureWarning(warningItems, data) {
+  if (!warningItems.length) return '';
+
+  // Flatten all kinds from warningItems
+  const allKinds = [];
+  for (const item of warningItems) {
+    for (const k of (item.kinds || [])) {
+      allKinds.push({
+        name: k.name || (WARNING_KIND_DEFS[k.code]?.name) || k.code,
+        code: k.code,
+        condition: k.condition || '',
+        status: k.status || '発表',
+      });
+    }
+  }
+
+  if (!allKinds.length) return '';
+
+  return `<Warning type="気象警報・注意報（府県予報区等）">
+<Item>
+${allKinds.map(k => `<Kind>
+<Name>${esc(k.name)}</Name>
+<Code>${k.code}</Code>
+<Status>${k.status}</Status>
+${k.condition ? `<Condition>${esc(k.condition)}</Condition>` : ''}
+</Kind>`).join('\n')}
+<Area>
+<Name>${esc(data.prefectureName || '')}</Name>
+<Code>${data.prefectureCode || ''}</Code>
+</Area>
+</Item>
+</Warning>`;
+}
 function buildBodyItem(m) {
   const kinds = m.kinds || [];
   return `<Item>
 ${kinds.map(k => `<Kind>
 <Name>${esc(k.name || WARNING_KIND_DEFS[k.code]?.name || k.code)}</Name>
 <Code>${k.code}</Code>
+<Status>${k.status || '発表'}</Status>
 </Kind>`).join('\n')}
-<Areas codeType="気象・地震・火山情報／市町村等">
 <Area>
 <Name>${esc(m.areaName)}</Name>
 <Code>${m.areaCode}</Code>
 </Area>
-</Areas>
 </Item>`;
 }
 

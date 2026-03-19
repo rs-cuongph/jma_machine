@@ -21,11 +21,11 @@
 const { toJST, formatEventId, esc } = require('./earthquakeXml');
 
 const ALERT_LEVELS = {
-  '11': { level: 1, name: 'レベル１（活火山であることに留意）', warningName: '噴火予報', warningCode: '05' },
-  '12': { level: 2, name: 'レベル２（火口周辺規制）', warningName: '火口周辺警報', warningCode: '02' },
-  '13': { level: 3, name: 'レベル３（入山規制）', warningName: '火口周辺警報', warningCode: '02' },
-  '14': { level: 4, name: 'レベル４（高齢者等避難）', warningName: '噴火警報（居住地域）', warningCode: '01' },
-  '15': { level: 5, name: 'レベル５（避難）', warningName: '噴火警報（居住地域）', warningCode: '01' },
+  '11': { level: 1, name: 'レベル１（活火山であることに留意）', warningName: '噴火予報', warningCode: '05', defenseName: '活火山であることに留意', defenseCode: '45' },
+  '12': { level: 2, name: 'レベル２（火口周辺規制）', warningName: '火口周辺警報', warningCode: '02', defenseName: '火口周辺警報：火口周辺規制', defenseCode: '44' },
+  '13': { level: 3, name: 'レベル３（入山規制）', warningName: '火口周辺警報', warningCode: '02', defenseName: '火口周辺警報：入山規制等', defenseCode: '43' },
+  '14': { level: 4, name: 'レベル４（高齢者等避難）', warningName: '噴火警報（居住地域）', warningCode: '01', defenseName: '噴火警報：高齢者等避難等', defenseCode: '42' },
+  '15': { level: 5, name: 'レベル５（避難）', warningName: '噴火警報（居住地域）', warningCode: '01', defenseName: '噴火警報：避難等', defenseCode: '41' },
 };
 
 function generateVolcanoXml(data) {
@@ -105,6 +105,23 @@ ${munAreasXml}
 </Areas>
 </Item>
 </Information>
+<Information type="噴火警報・予報（対象市町村の防災対応等）">
+<Item>
+<Kind>
+<Name>${esc(levelInfo.defenseName)}</Name>
+<Code>${levelInfo.defenseCode}</Code>
+<Condition>${kindCondition}</Condition>
+</Kind>
+<LastKind>
+<Name>${esc(prevLevelInfo.defenseName)}</Name>
+<Code>${prevLevelInfo.defenseCode}</Code>
+<Condition />
+</LastKind>
+<Areas codeType="気象・地震・火山情報／市町村等">
+${munAreasXml}
+</Areas>
+</Item>
+</Information>
 </Headline>
 </Head>
 <Body xmlns="http://xml.kishou.go.jp/jmaxml1/body/volcanology1/" xmlns:jmx_eb="http://xml.kishou.go.jp/jmaxml1/elementBasis1/">
@@ -139,6 +156,23 @@ ${munAreasXml}
 <LastKind>
 <Name>${esc(prevLevelInfo.warningName)}</Name>
 <Code>${prevLevelInfo.warningCode}</Code>
+<Condition />
+</LastKind>
+<Areas codeType="気象・地震・火山情報／市町村等">
+${munAreasXml}
+</Areas>
+</Item>
+</VolcanoInfo>
+<VolcanoInfo type="噴火警報・予報（対象市町村の防災対応等）">
+<Item>
+<Kind>
+<Name>${esc(levelInfo.defenseName)}</Name>
+<Code>${levelInfo.defenseCode}</Code>
+<Condition>${kindCondition}</Condition>
+</Kind>
+<LastKind>
+<Name>${esc(prevLevelInfo.defenseName)}</Name>
+<Code>${prevLevelInfo.defenseCode}</Code>
 <Condition />
 </LastKind>
 <Areas codeType="気象・地震・火山情報／市町村等">
