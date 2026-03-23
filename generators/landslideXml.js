@@ -4,45 +4,75 @@
  *
  * SPEC (jma_worker_handler.md):
  * - Parser reads areas[] from Head/Headline/Information[@type="土砂災害警戒情報"]
- *   → warning_code: Kind/Code  (must be "3" for 警戒)
- *   → status: Kind/Status  (NOT Kind/Condition!) — must be "発表" or "継続"
+ *   → warning_code: Kind/Code  ("3"=警戒, "1"=解除)
+ *   → status: Kind/Condition ("発表" | "継続" | "解除")
  *   → area code: Areas/Area/Code (city code)
  * - target_area_code: Body/TargetArea/Code (6-digit)
  */
 const { toJST, esc } = require('./earthquakeXml');
+
+const KIND_MAP = {
+  '警戒': { code: '3' },
+  '解除': { code: '1' },
+  'なし': { code: '0' },
+};
+
+const STATUS_VALUES = new Set(['発表', '継続', '解除', 'なし']);
+
+function normalizeMunicipality(m) {
+  const kind = (m.warningKind || (m.status === '解除' ? '解除' : (m.status === 'なし' ? 'なし' : '警戒')));
+  const status = STATUS_VALUES.has(m.status) ? m.status : 'なし';
+  return {
+    name: m.name || '',
+    code: m.code || '',
+    warningKind: KIND_MAP[kind] ? kind : 'なし',
+    status,
+  };
+}
 
 function generateLandslideXml(data) {
   const now = data.dateTime || new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   const jst = data.reportDateTime || toJST(now);
   const eventId = data.eventId || (data.prefectureName + '土砂災害警戒情報');
 
-  const municipalities = data.municipalities || [];
+  const municipalities = (data.municipalities || []).map(normalizeMunicipality);
 
-  // Warned municipalities for headline Information
-  // CRITICAL: Kind/Status = "発表" (not Condition), warning_code = "3"
-  const warnedAreas = municipalities.filter(m => m.status === '警戒');
+  // Headline groups by warning kind + condition, excluding "なし"
+  const headlineGroups = new Map();
+  for (const m of municipalities) {
+    if (m.warningKind === 'なし' || m.status === 'なし') continue;
+    const key = `${m.warningKind}|${m.status}`;
+    if (!headlineGroups.has(key)) headlineGroups.set(key, []);
+    headlineGroups.get(key).push(m);
+  }
 
-  const headlineInfoXml = warnedAreas.length ? `      <Information type="土砂災害警戒情報">
-        <Item>
+  const headlineItemsXml = [...headlineGroups.entries()].map(([key, areas]) => {
+    const [kind, condition] = key.split('|');
+    const code = KIND_MAP[kind].code;
+    return `        <Item>
           <Kind>
-            <Name>警戒</Name>
-            <Code>3</Code>
-            <Status>発表</Status>
+            <Name>${kind}</Name>
+            <Code>${code}</Code>
+            <Condition>${condition}</Condition>
           </Kind>
           <Areas codeType="気象・地震・火山情報／市町村等">
-            ${warnedAreas.map(a => `<Area><Name>${esc(a.name)}</Name><Code>${a.code}</Code></Area>`).join('\n            ')}
+            ${areas.map(a => `<Area><Name>${esc(a.name)}</Name><Code>${a.code}</Code></Area>`).join('\n            ')}
           </Areas>
-        </Item>
+        </Item>`;
+  }).join('\n');
+
+  const headlineInfoXml = headlineItemsXml ? `      <Information type="土砂災害警戒情報">
+${headlineItemsXml}
       </Information>` : '';
 
-  // All municipalities in body Warning — use Status element (not Condition)
+  // Body uses Status with all supported values.
   const bodyItemsXml = municipalities.map(m => {
-    const isWarned = m.status === '警戒';
+    const kindInfo = KIND_MAP[m.warningKind] || KIND_MAP['なし'];
     return `      <Item>
         <Kind>
-          <Name>${isWarned ? '警戒' : 'なし'}</Name>
-          <Code>${isWarned ? '3' : '0'}</Code>
-          <Status>${isWarned ? '発表' : 'なし'}</Status>
+          <Name>${m.warningKind}</Name>
+          <Code>${kindInfo.code}</Code>
+          <Status>${m.status}</Status>
         </Kind>
         <Area>
           <Name>${esc(m.name)}</Name>

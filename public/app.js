@@ -497,33 +497,40 @@ function formLandslide() {
 </div>
 <div class="form-section">
   <div class="form-section-title">Municipalities 市町村 <button class="btn-add-row" onclick="addLandslideRow()" type="button">＋ Add Area</button></div>
-  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:4px;margin-bottom:4px;font-size:10px;color:var(--text3);padding:0 4px;">
-    <span>Area Name</span><span>Code</span><span>Status</span><span></span>
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 28px;gap:4px;margin-bottom:4px;font-size:10px;color:var(--text3);padding:0 4px;">
+    <span>Area Name</span><span>Code</span><span>Warning Kind</span><span>Status</span><span></span>
   </div>
   <div id="landslideRows"></div>
 </div>`;
 }
 
 function initLandslideRows() {
-  addLandslideRow('岡山市', '3310000', 'なし');
-  addLandslideRow('高梁市', '3320900', '警戒');
-  addLandslideRow('新見市', '3321000', 'なし');
+  addLandslideRow('岡山市', '3310000', 'なし', 'なし');
+  addLandslideRow('高梁市', '3320900', '警戒', '発表');
+  addLandslideRow('新見市', '3321000', 'なし', 'なし');
 }
 
 let landslideRowId = 0;
-window.addLandslideRow = function(areaName='', areaCode='', status='なし') {
+window.addLandslideRow = function(areaName='', areaCode='', warningKind='なし', status='なし') {
   const id = ++landslideRowId;
   const container = document.getElementById('landslideRows');
   const div = document.createElement('div');
   div.id = `lr-${id}`;
   div.className = 'dyn-row';
-  div.style.gridTemplateColumns = '2fr 1fr 1fr 28px';
+  div.style.gridTemplateColumns = '2fr 1fr 1fr 1fr 28px';
   div.innerHTML = `
     <input class="form-input" placeholder="高梁市" value="${areaName}" data-field="name">
     <input class="form-input" placeholder="3320900" value="${areaCode}" data-field="code">
+    <select class="form-select" data-field="warningKind">
+      <option ${warningKind==='警戒'?'selected':''}>警戒</option>
+      <option ${warningKind==='解除'?'selected':''}>解除</option>
+      <option ${warningKind==='なし'?'selected':''}>なし</option>
+    </select>
     <select class="form-select" data-field="status">
+      <option ${status==='発表'?'selected':''}>発表</option>
+      <option ${status==='継続'?'selected':''}>継続</option>
+      <option ${status==='解除'?'selected':''}>解除</option>
       <option ${status==='なし'?'selected':''}>なし</option>
-      <option ${status==='警戒'?'selected':''}>警戒</option>
     </select>
     <button class="dyn-row-del" onclick="removeRow('lr-${id}')">✕</button>`;
   container.appendChild(div);
@@ -752,6 +759,7 @@ function collectFormData() {
       const municipalities = [...document.querySelectorAll('#landslideRows .dyn-row')].map(row => ({
         name: row.querySelector('[data-field="name"]')?.value||'',
         code: row.querySelector('[data-field="code"]')?.value||'',
+        warningKind: row.querySelector('[data-field="warningKind"]')?.value||'なし',
         status: row.querySelector('[data-field="status"]')?.value||'なし',
       }));
       return { infoType: v('f-infoType'), serial: parseInt(v('f-serial'))||1,
