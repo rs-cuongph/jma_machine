@@ -12,7 +12,21 @@ let allEvents = {};
 window.addEventListener('DOMContentLoaded', () => {
   navigate('list');
   renderForm('earthquake');
+  document.getElementById('btnPreviewXml')?.addEventListener('click', previewXml);
+  document.getElementById('btnGenerateEvent')?.addEventListener('click', generateEvent);
+  document.getElementById('eventList')?.addEventListener('click', onEventListActionClick);
 });
+
+/** Event list buttons: avoid inline onclick + JSON in HTML attrs (breaks on " in value). */
+function onEventListActionClick(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const { action, cat, filename, url } = btn.dataset;
+  if (action === 'viewXml') viewXml(cat, filename);
+  else if (action === 'copyUrl') copyUrl(url);
+  else if (action === 'duplicate') duplicateEvent(cat, filename);
+  else if (action === 'delete') deleteEvent(cat, filename);
+}
 
 // ── Navigation ─────────────────────────────────────────────────
 function navigate(page) {
@@ -44,7 +58,7 @@ async function loadEvents() {
 }
 
 function renderEventList() {
-  const CAT_ICONS = { earthquake:'🌍', tsunami:'🌊', weather:'⛈', landslide:'⛰', volcano:'🌋' };
+  const CAT_FA = { earthquake:'fa-globe', tsunami:'fa-droplet', weather:'fa-cloud-bolt', landslide:'fa-mountain', volcano:'fa-fire' };
   const grid = document.getElementById('eventList');
   const cats = ['earthquake','tsunami','weather','landslide','volcano'];
   let items = [];
@@ -54,7 +68,7 @@ function renderEventList() {
   }
   items.sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   if (!items.length) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No events found. <a href="#" onclick="navigate('create')">Create your first event →</a></div></div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon" aria-hidden="true"><i class="fa-solid fa-inbox"></i></div><div class="empty-text">No events found. <a href="#" onclick="navigate('create')">Create your first event</a></div></div>`;
     return;
   }
   grid.innerHTML = items.map(ev => {
@@ -63,20 +77,23 @@ function renderEventList() {
     const cat = ev.category;
     const dataUrl = `/data/${cat}/${ev.filename}`;
     return `<div class="event-card" data-cat="${cat}">
-      <div class="type-badge badge-${cat}">${cat}</div>
       <div class="event-card-top">
-        <div class="event-icon">${CAT_ICONS[cat]||'📄'}</div>
-        <div>
-          <div class="event-title">${escHtml(title)}</div>
+        <div class="event-icon"><i class="fa-solid ${CAT_FA[cat]||'fa-file'}"></i></div>
+        <div class="event-card-main">
+          <div class="event-title-row">
+            <div class="event-title">${escHtml(title)}</div>
+            <span class="type-badge badge-${cat}">${cat}</span>
+          </div>
           <div class="event-subtitle">${escHtml(ev.infoType||'')} ${ev.controlTitle ? '| '+escHtml(ev.controlTitle) : ''}</div>
         </div>
       </div>
-      <div class="event-meta"><span>🕐 ${dt}</span></div>
-      <div class="event-filename">${ev.filename}</div>
+      <div class="event-meta"><span class="event-meta-time has-icon"><i class="fa-regular fa-clock"></i> ${escHtml(dt)}</span></div>
+      <div class="event-filename">${escHtml(ev.filename)}</div>
       <div class="event-actions">
-        <button class="btn-xs info" onclick="viewXml('${cat}','${ev.filename}')">👁 View XML</button>
-        <button class="btn-xs info" onclick="copyUrl('${dataUrl}')">⎘ Copy URL</button>
-        <button class="btn-xs danger" onclick="deleteEvent('${cat}','${ev.filename}')">🗑 Delete</button>
+        <button type="button" class="btn-xs info icon-btn" title="View XML" aria-label="View XML" data-action="viewXml" data-cat="${escAttr(cat)}" data-filename="${escAttr(ev.filename)}"><i class="fa-solid fa-eye"></i></button>
+        <button type="button" class="btn-xs info icon-btn" title="Copy URL" aria-label="Copy URL" data-action="copyUrl" data-url="${escAttr(dataUrl)}"><i class="fa-solid fa-link"></i></button>
+        <button type="button" class="btn-xs info icon-btn" title="Duplicate" aria-label="Duplicate" data-action="duplicate" data-cat="${escAttr(cat)}" data-filename="${escAttr(ev.filename)}"><i class="fa-solid fa-clone"></i></button>
+        <button type="button" class="btn-xs danger icon-btn" title="Delete" aria-label="Delete" data-action="delete" data-cat="${escAttr(cat)}" data-filename="${escAttr(ev.filename)}"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -204,7 +221,7 @@ function formEarthquake() {
   </div>
 </div>
 <div class="form-section">
-  <div class="form-section-title">Intensity 震度 — Affected Prefectures <button class="btn-add-row" onclick="addEqPrefRow()" type="button">＋ Add Prefecture</button></div>
+  <div class="form-section-title">Intensity 震度 — Affected Prefectures <button class="btn-add-row" onclick="addEqPrefRow()" type="button"><i class="fa-solid fa-plus"></i> Add Prefecture</button></div>
   <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr 1fr 28px;gap:4px;margin-bottom:4px;font-size:10px;color:var(--text3);padding:0 4px;">
     <span>Pref Name</span><span>Pref Code(2桁)</span><span>MaxInt</span><span>City Name</span><span>City Code(7桁)</span><span></span>
   </div>
@@ -247,7 +264,7 @@ window.addEqPrefRow = function(prefName='', prefCode='', maxInt='5-', cityName='
     <select class="form-select" data-field="maxInt">${intOpts}</select>
     <input class="form-input" placeholder="栗原市" value="${cityName}" data-field="cityName">
     <input class="form-input" placeholder="0421300" value="${cityCode}" data-field="cityCode">
-    <button class="dyn-row-del" onclick="removeRow('ep-${id}')">✕</button>`;
+    <button type="button" class="dyn-row-del" onclick="removeRow('ep-${id}')" aria-label="Remove row"><i class="fa-solid fa-xmark"></i></button>`;
   container.appendChild(div);
 };
 
@@ -300,7 +317,7 @@ function formTsunami() {
   </div>
 </div>
 <div class="form-section">
-  <div class="form-section-title">Warning Areas 津波予報区 <button class="btn-add-row" onclick="addTsunamiRow()" type="button">＋ Add Area</button></div>
+  <div class="form-section-title">Warning Areas 津波予報区 <button class="btn-add-row" onclick="addTsunamiRow()" type="button"><i class="fa-solid fa-plus"></i> Add Area</button></div>
   <div style="display:grid;grid-template-columns:2fr 1fr 2fr 1fr 1fr 1fr 28px;gap:4px;margin-bottom:4px;font-size:10px;color:var(--text3);padding:0 4px;">
     <span>Area Name</span><span>Code</span><span>Warning Level</span><span>Arrival Time</span><span>Height m</span><span>Height Desc</span><span></span>
   </div>
@@ -364,7 +381,7 @@ window.addTsunamiRow = function(areaName='', areaCode='', kindCode='51', issuedC
       <option value="高い" ${heightDesc==='高い'?'selected':''}>高い</option>
       <option value="1m" ${heightDesc==='1m'?'selected':''}>1m</option>
     </select>
-    <button class="dyn-row-del" onclick="removeRow('tr-${id}')">✕</button>`;
+    <button type="button" class="dyn-row-del" onclick="removeRow('tr-${id}')" aria-label="Remove row"><i class="fa-solid fa-xmark"></i></button>`;
   container.appendChild(div);
 };
 // local alias so internal init calls still work
@@ -428,7 +445,7 @@ function formWeather() {
   </div>
 </div>
 <div class="form-section">
-  <div class="form-section-title">Municipality Warnings 市町村等 <button class="btn-add-row" onclick="addWeatherRow()" type="button">＋ Add Area</button></div>
+  <div class="form-section-title">Municipality Warnings 市町村等 <button class="btn-add-row" onclick="addWeatherRow()" type="button"><i class="fa-solid fa-plus"></i> Add Area</button></div>
   <div id="weatherRows"></div>
 </div>`;
 }
@@ -460,7 +477,7 @@ window.addWeatherRow = function(areaName='', areaCode='', kindCodes=[]) {
         <input type="checkbox" value="${k.code}" data-field="kind" ${kindCodes.includes(k.code)?'checked':''}> ${k.name}
       </label>`).join('')}
     </div>
-    <button class="dyn-row-del" onclick="removeRow('wr-${id}')">✕</button>`;
+    <button type="button" class="dyn-row-del" onclick="removeRow('wr-${id}')" aria-label="Remove row"><i class="fa-solid fa-xmark"></i></button>`;
   container.appendChild(div);
 };
 function addWeatherRow(...args) { window.addWeatherRow(...args); }
@@ -496,7 +513,7 @@ function formLandslide() {
   </div>
 </div>
 <div class="form-section">
-  <div class="form-section-title">Municipalities 市町村 <button class="btn-add-row" onclick="addLandslideRow()" type="button">＋ Add Area</button></div>
+  <div class="form-section-title">Municipalities 市町村 <button class="btn-add-row" onclick="addLandslideRow()" type="button"><i class="fa-solid fa-plus"></i> Add Area</button></div>
   <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 28px;gap:4px;margin-bottom:4px;font-size:10px;color:var(--text3);padding:0 4px;">
     <span>Area Name</span><span>Code</span><span>Warning Kind</span><span>Status</span><span></span>
   </div>
@@ -532,7 +549,7 @@ window.addLandslideRow = function(areaName='', areaCode='', warningKind='なし'
       <option ${status==='解除'?'selected':''}>解除</option>
       <option ${status==='なし'?'selected':''}>なし</option>
     </select>
-    <button class="dyn-row-del" onclick="removeRow('lr-${id}')">✕</button>`;
+    <button type="button" class="dyn-row-del" onclick="removeRow('lr-${id}')" aria-label="Remove row"><i class="fa-solid fa-xmark"></i></button>`;
   container.appendChild(div);
 };
 function addLandslideRow(...args) { window.addLandslideRow(...args); }
@@ -599,7 +616,7 @@ function formVolcano() {
   </div>
 </div>
 <div class="form-section">
-  <div class="form-section-title">Affected Municipalities 対象市町村 <button class="btn-add-row" onclick="addVolcanoMunRow()" type="button">＋ Add</button></div>
+  <div class="form-section-title">Affected Municipalities 対象市町村 <button class="btn-add-row" onclick="addVolcanoMunRow()" type="button"><i class="fa-solid fa-plus"></i> Add</button></div>
   <div id="volcanoMunRows"></div>
 </div>
 <div class="form-section">
@@ -632,7 +649,7 @@ window.addVolcanoMunRow = function(name='', code='') {
   div.innerHTML = `
     <input class="form-input" placeholder="長野県小諸市" value="${name}" data-field="name">
     <input class="form-input" placeholder="2020800" value="${code}" data-field="code">
-    <button class="dyn-row-del" onclick="removeRow('vm-${id}')">✕</button>`;
+    <button type="button" class="dyn-row-del" onclick="removeRow('vm-${id}')" aria-label="Remove row"><i class="fa-solid fa-xmark"></i></button>`;
   container.appendChild(div);
   return div;
 };
@@ -654,9 +671,9 @@ window.updateVolcanoWarningInfo = function() {
   const prev = document.getElementById('f-prevAlertLevelCode')?.value || '11';
   const ci = VOLCANO_ALERT_INFO[cur] || VOLCANO_ALERT_INFO['13'];
   const pi = VOLCANO_ALERT_INFO[prev] || VOLCANO_ALERT_INFO['11'];
-  el.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">⚡ Generated Warning Info (自動算出)</div>
-    <div>🔹 <b>対象市町村等:</b> ${ci.warningName}（code: ${ci.warningCode}）← 前回: ${pi.warningName}（${pi.warningCode}）</div>
-    <div>🔹 <b>防災対応等:</b> ${ci.defenseName}（code: ${ci.defenseCode}）← 前回: ${pi.defenseName}（${pi.defenseCode}）</div>`;
+  el.innerHTML = `<div style="font-weight:600;margin-bottom:4px;"><i class="fa-solid fa-bolt" style="margin-right:6px;opacity:.85"></i>Generated Warning Info (自動算出)</div>
+    <div><i class="fa-solid fa-caret-right" style="margin-right:6px;opacity:.7"></i><b>対象市町村等:</b> ${ci.warningName}（code: ${ci.warningCode}）← 前回: ${pi.warningName}（${pi.warningCode}）</div>
+    <div><i class="fa-solid fa-caret-right" style="margin-right:6px;opacity:.7"></i><b>防災対応等:</b> ${ci.defenseName}（code: ${ci.defenseCode}）← 前回: ${pi.defenseName}（${pi.defenseCode}）</div>`;
 };
 function updateVolcanoWarningInfo() { window.updateVolcanoWarningInfo(); }
 
@@ -688,6 +705,35 @@ window.switchType = (type) => {
 
 function removeRow(id) { document.getElementById(id)?.remove(); }
 window.removeRow = removeRow;
+
+// ── Duplicate: save a new XML from stored .meta.json (same as Generate) ──
+async function duplicateEvent(cat, filename) {
+  try {
+    const res = await fetch(`/api/events/${encodeURIComponent(cat)}/${encodeURIComponent(filename)}/meta`);
+    const json = await readResponseJson(res);
+    if (!res.ok) {
+      showToast(json.error || 'Không có dữ liệu gốc (.meta.json). Tạo lại bản tin bằng Generate trước.', 'error');
+      return;
+    }
+    const { type, data } = json;
+    const createRes = await fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, data }),
+    });
+    const createJson = await readResponseJson(createRes);
+    if (!createRes.ok || !createJson.success) {
+      showToast(createJson.error || 'Tạo bản sao thất bại', 'error');
+      return;
+    }
+    showToast(`Đã nhân bản: ${createJson.filename}`, 'success');
+    navigate('list');
+  } catch (e) {
+    console.error(e);
+    showToast('Nhân bản thất bại', 'error');
+  }
+}
+window.duplicateEvent = duplicateEvent;
 
 // ── Collect Form Data ──────────────────────────────────────────
 function collectFormData() {
@@ -781,6 +827,8 @@ function collectFormData() {
         headlineText: v('f-headlineText'), volcanoHeadline: v('f-headlineText'),
         volcanoActivity: v('f-volcanoActivity'), volcanoPrevention: v('f-volcanoPrevention') };
     }
+    default:
+      return {};
   }
 }
 
@@ -795,27 +843,71 @@ function collectRows(containerId, fields) {
   });
 }
 
+/** Parse JSON from fetch; avoids SyntaxError on empty/non-JSON bodies (proxy errors, 502 HTML). */
+async function readResponseJson(res) {
+  const text = await res.text();
+  if (!text || !text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: 'Invalid response (not JSON). Check server / network.' };
+  }
+}
+
 // ── Preview ────────────────────────────────────────────────────
 async function previewXml() {
-  const data = collectFormData();
-  const res = await fetch('/api/events/preview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:currentType, data}) });
-  const json = await res.json();
-  if (json.xml) {
-    document.getElementById('xmlPreview').innerHTML = syntaxHL(json.xml);
-    document.getElementById('previewBadge').textContent = currentType.toUpperCase();
-  } else { showToast(json.error||'Preview failed','error'); }
+  let res;
+  try {
+    const data = collectFormData() ?? {};
+    res = await fetch('/api/events/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: currentType, data }),
+    });
+  } catch (e) {
+    showToast('Preview request failed', 'error');
+    return;
+  }
+  const json = await readResponseJson(res);
+  if (!res.ok) {
+    showToast(json.error || 'Preview failed', 'error');
+    return;
+  }
+  if (json.xml != null && json.xml !== '') {
+    try {
+      document.getElementById('xmlPreview').innerHTML = syntaxHL(json.xml);
+      document.getElementById('previewBadge').textContent = currentType.toUpperCase();
+    } catch (e) {
+      console.error(e);
+      showToast('Preview display error', 'error');
+    }
+  } else {
+    showToast(json.error || 'Preview failed (no XML)', 'error');
+  }
 }
 window.previewXml = previewXml;
 
 // ── Generate ───────────────────────────────────────────────────
 async function generateEvent() {
-  const data = collectFormData();
-  const res = await fetch('/api/events', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:currentType, data}) });
-  const json = await res.json();
+  let res;
+  try {
+    const data = collectFormData() ?? {};
+    res = await fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: currentType, data }),
+    });
+  } catch (e) {
+    showToast('Save request failed', 'error');
+    return;
+  }
+  const json = await readResponseJson(res);
   if (json.success) {
-    showToast(`✅ Created: ${json.filename}`, 'success');
+    showToast(`Created: ${json.filename}`, 'success');
     setTimeout(() => navigate('list'), 800);
-  } else { showToast(json.error||'Failed to create event','error'); }
+  } else {
+    showToast(json.error || 'Failed to create event', 'error');
+  }
 }
 window.generateEvent = generateEvent;
 
@@ -830,7 +922,8 @@ function nowJST() {
 }
 
 function syntaxHL(xml) {
-  return xml
+  const s = xml == null ? '' : String(xml);
+  return s
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/(&lt;\?[^?]*\?&gt;)/g,'<span class="xp">$1</span>')
     .replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="xp">$1</span>')
@@ -841,6 +934,11 @@ function syntaxHL(xml) {
 
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/** Escape attribute values in double-quoted HTML (data-* on event cards). */
+function escAttr(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
 let toastTimer;

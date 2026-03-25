@@ -54,6 +54,25 @@ router.get('/events', (req, res) => {
   res.json(result);
 });
 
+// GET /api/events/:type/:filename/meta — form payload saved at create time (for Duplicate)
+router.get('/events/:type/:filename/meta', (req, res) => {
+  const { type, filename } = req.params;
+  if (!CATEGORIES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+  if (!filename.endsWith('.xml') || filename.includes('/') || filename.includes('..')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  const metaPath = path.join(EVENTS_DIR, type, filename.replace(/\.xml$/i, '.meta.json'));
+  if (!fs.existsSync(metaPath)) {
+    return res.status(404).json({ error: 'No saved form data for this file (only events created after duplicate support)' });
+  }
+  try {
+    const raw = fs.readFileSync(metaPath, 'utf-8');
+    res.json(JSON.parse(raw));
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to read metadata' });
+  }
+});
+
 // POST /api/events — create new event (generate XML and save)
 router.post('/events', (req, res) => {
   const { type, data } = req.body;
@@ -66,6 +85,12 @@ router.post('/events', (req, res) => {
     const filename = makeFilename(type, areaCode);
     const filePath = path.join(EVENTS_DIR, type, filename);
     fs.writeFileSync(filePath, xmlContent, 'utf-8');
+    const metaPath = filePath.replace(/\.xml$/i, '.meta.json');
+    try {
+      fs.writeFileSync(metaPath, JSON.stringify({ type, data }, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('Failed to write meta:', e);
+    }
     res.json({ success: true, filename, path: `/data/${type}/${filename}` });
   } catch (err) {
     console.error('Generate XML error:', err);
@@ -98,6 +123,10 @@ router.delete('/events/:type/:filename', (req, res) => {
   const filePath = path.join(EVENTS_DIR, type, filename);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
   fs.unlinkSync(filePath);
+  const metaPath = filePath.replace(/\.xml$/i, '.meta.json');
+  if (fs.existsSync(metaPath)) {
+    try { fs.unlinkSync(metaPath); } catch (_) {}
+  }
   res.json({ success: true });
 });
 
@@ -109,7 +138,13 @@ router.delete('/events', (req, res) => {
     if (!fs.existsSync(dir)) continue;
     const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
     for (const f of files) {
+      if (!f.endsWith('.xml')) continue;
       fs.unlinkSync(path.join(dir, f));
+      const meta = f.replace(/\.xml$/i, '.meta.json');
+      const mp = path.join(dir, meta);
+      if (fs.existsSync(mp)) {
+        try { fs.unlinkSync(mp); } catch (_) {}
+      }
       count++;
     }
   }

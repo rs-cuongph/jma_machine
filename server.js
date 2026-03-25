@@ -20,8 +20,12 @@ app.use('/feed', feedsRouter);
 app.use('/data', dataRouter);
 app.use('/api', eventsRouter);
 
-// SPA: serve index.html for all unmatched routes
-app.get('/{*splat}', (req, res) => {
+// SPA: serve index.html for non-API GET routes (do not return HTML for missing .js/.css — browser would parse HTML as JS → SyntaxError)
+app.get('*', (req, res, next) => {
+  const ext = path.extname(req.path);
+  if (['.js', '.css', '.map', '.json', '.ico', '.png', '.svg', '.woff', '.woff2'].includes(ext)) {
+    return res.status(404).type('text/plain').send('Not found');
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

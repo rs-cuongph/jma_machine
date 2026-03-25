@@ -7,21 +7,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 </head>
 <body>
   <!-- HEADER -->
   <header class="header">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">📡</span>
+        <span class="logo-icon" aria-hidden="true"><i class="fa-solid fa-tower-broadcast"></i></span>
         <div>
           <span class="logo-title">JMA XML Machine</span>
           <span class="logo-sub">Disaster Feed Simulator v2</span>
         </div>
       </div>
       <nav class="nav">
-        <a class="nav-link active" href="#" id="navList" onclick="navigate('list')">📋 Event List</a>
-        <a class="nav-link" href="#" id="navCreate" onclick="navigate('create')">➕ Create Event</a>
+        <a class="nav-link has-icon active" href="#" id="navList" onclick="navigate('list')"><i class="fa-solid fa-list"></i> Event List</a>
+        <a class="nav-link has-icon" href="#" id="navCreate" onclick="navigate('create')"><i class="fa-solid fa-plus"></i> Create Event</a>
       </nav>
       <div class="feed-pills">
         <a class="feed-pill" href="/feed/extra.xml" target="_blank">/feed/extra.xml</a>
@@ -35,21 +36,21 @@
     <!-- PAGE: EVENT LIST -->
     <div id="pagelist" class="page active">
       <div class="page-header">
-        <h1 class="page-title">📋 Event List</h1>
+        <h1 class="page-title has-icon"><i class="fa-solid fa-list"></i> Event List</h1>
         <div class="filter-bar">
           <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
-          <button class="filter-btn" data-filter="earthquake" onclick="setFilter('earthquake')">🌍 Earthquake</button>
-          <button class="filter-btn" data-filter="tsunami" onclick="setFilter('tsunami')">🌊 Tsunami</button>
-          <button class="filter-btn" data-filter="weather" onclick="setFilter('weather')">⛈ Weather</button>
-          <button class="filter-btn" data-filter="landslide" onclick="setFilter('landslide')">⛰ Landslide</button>
-          <button class="filter-btn" data-filter="volcano" onclick="setFilter('volcano')">🌋 Volcano</button>
-          <button class="btn-xs danger" onclick="deleteAllEvents()" style="margin-left:auto">🗑 Delete All</button>
+          <button class="filter-btn has-icon" data-filter="earthquake" onclick="setFilter('earthquake')"><i class="fa-solid fa-globe"></i> Earthquake</button>
+          <button class="filter-btn has-icon" data-filter="tsunami" onclick="setFilter('tsunami')"><i class="fa-solid fa-droplet"></i> Tsunami</button>
+          <button class="filter-btn has-icon" data-filter="weather" onclick="setFilter('weather')"><i class="fa-solid fa-cloud-bolt"></i> Weather</button>
+          <button class="filter-btn has-icon" data-filter="landslide" onclick="setFilter('landslide')"><i class="fa-solid fa-mountain"></i> Landslide</button>
+          <button class="filter-btn has-icon" data-filter="volcano" onclick="setFilter('volcano')"><i class="fa-solid fa-fire"></i> Volcano</button>
+          <button class="btn-xs danger has-icon" onclick="deleteAllEvents()" style="margin-left:auto" type="button"><i class="fa-solid fa-trash-can"></i> Delete All</button>
         </div>
       </div>
       <div id="eventList" class="event-grid">
         <div class="empty-state">
-          <div class="empty-icon">📭</div>
-          <div class="empty-text">No events yet. <a href="#" onclick="navigate('create')">Create your first event →</a></div>
+          <div class="empty-icon" aria-hidden="true"><i class="fa-solid fa-inbox"></i></div>
+          <div class="empty-text">No events yet. <a href="#" onclick="navigate('create')">Create your first event</a></div>
         </div>
       </div>
     </div>
@@ -57,24 +58,24 @@
     <!-- PAGE: CREATE EVENT -->
     <div id="pagecreate" class="page">
       <div class="page-header">
-        <h1 class="page-title">➕ Create Event</h1>
+        <h1 class="page-title has-icon"><i class="fa-solid fa-plus"></i> Create Event</h1>
       </div>
       <div class="create-layout">
         <!-- Type tabs + form -->
         <div class="form-panel">
           <div class="type-tabs">
-            <button class="type-tab active" data-type="earthquake" onclick="switchType('earthquake')">🌍 Earthquake</button>
-            <button class="type-tab" data-type="tsunami" onclick="switchType('tsunami')">🌊 Tsunami</button>
-            <button class="type-tab" data-type="weather" onclick="switchType('weather')">⛈ Weather</button>
-            <button class="type-tab" data-type="landslide" onclick="switchType('landslide')">⛰ Landslide</button>
-            <button class="type-tab" data-type="volcano" onclick="switchType('volcano')">🌋 Volcano</button>
+            <button type="button" class="type-tab has-icon active" data-type="earthquake" onclick="switchType('earthquake')"><i class="fa-solid fa-globe"></i> Earthquake</button>
+            <button type="button" class="type-tab has-icon" data-type="tsunami" onclick="switchType('tsunami')"><i class="fa-solid fa-droplet"></i> Tsunami</button>
+            <button type="button" class="type-tab has-icon" data-type="weather" onclick="switchType('weather')"><i class="fa-solid fa-cloud-bolt"></i> Weather</button>
+            <button type="button" class="type-tab has-icon" data-type="landslide" onclick="switchType('landslide')"><i class="fa-solid fa-mountain"></i> Landslide</button>
+            <button type="button" class="type-tab has-icon" data-type="volcano" onclick="switchType('volcano')"><i class="fa-solid fa-fire"></i> Volcano</button>
           </div>
           <div id="formContainer" class="form-container">
             <!-- Rendered by JS -->
           </div>
           <div class="form-actions">
-            <button class="btn btn-secondary" onclick="previewXml()">👁 Preview XML</button>
-            <button class="btn btn-primary" onclick="generateEvent()">✨ Generate & Save</button>
+            <button type="button" id="btnPreviewXml" class="btn btn-secondary has-icon"><i class="fa-solid fa-eye"></i> Preview XML</button>
+            <button type="button" id="btnGenerateEvent" class="btn btn-primary has-icon"><i class="fa-solid fa-floppy-disk"></i> Generate & Save</button>
           </div>
         </div>
         <!-- Preview panel -->
@@ -83,7 +84,7 @@
             <span>XML Preview</span>
             <span class="preview-badge" id="previewBadge">-</span>
           </div>
-          <pre class="xml-preview" id="xmlPreview"><span class="preview-hint">Click "Preview XML" to see the generated output</span></pre>
+          <pre class="xml-preview" id="xmlPreview"><span class="preview-hint">Click &quot;Preview XML&quot; to see the generated output</span></pre>
         </div>
       </div>
     </div>
@@ -94,7 +95,7 @@
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalTitle">XML Content</span>
-        <button class="modal-close" onclick="closeModal()">✕</button>
+        <button type="button" class="modal-close has-icon" onclick="closeModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <pre class="modal-xml" id="modalXml"></pre>
     </div>
@@ -102,6 +103,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="app.js"></script>
+  <script defer src="app.js"></script>
 </body>
 </html>
