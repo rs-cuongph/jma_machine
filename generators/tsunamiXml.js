@@ -6,7 +6,7 @@
  * - Parser reads from Body/Tsunami/Forecast/Item
  *   → area_code: Item/Area/Code  (3-digit coastal zone string like "210")
  *   → warning_code: Item/Category/Kind/Code  (prefer current, fallback LastKind)
- *     Valid codes: 53=大津波警報, 51=津波警報, 62=津波注意報, 71=津波予報
+ *     Valid codes: 53=大津波警報, 52=大津波警報：発表, 51=津波警報, 62=津波注意報, 71=津波予報
  *   → warning_name: Item/Category/Kind/Name
  * - Atom entry title must contain "津波警報・注意報・予報"
  * - Head/Title must contain "津波警報・注意報・予報" for worker routing
@@ -15,7 +15,8 @@ const { toJST, formatEventId, esc } = require('./earthquakeXml');
 
 // Tsunami warning kind definitions
 const TSUNAMI_KIND_MAP = {
-  '53': { name: '大津波警報：発表', lastName: '津波なし', lastCode: '00' },
+  '53': { name: '大津波警報', lastName: '津波なし', lastCode: '00' },
+  '52': { name: '大津波警報：発表', lastName: '津波なし', lastCode: '00' },
   '51': { name: '津波警報', lastName: '津波なし', lastCode: '00' },
   '62': { name: '津波注意報', lastName: '津波なし', lastCode: '00' },
   '71': { name: '津波予報（若干の海面変動）', lastName: '津波なし', lastCode: '00' },
@@ -42,7 +43,7 @@ function generateTsunamiXml(data) {
   // Build Head/Title dynamically from actual warning kinds present
   // Order: 大津波警報 > 津波警報 > 津波注意報 > 津波予報
   const HEAD_TITLE_PARTS = [
-    { codes: ['53'], label: '大津波警報' },
+    { codes: ['53', '52'], label: '大津波警報' },
     { codes: ['51'], label: '津波警報' },
     { codes: ['62'], label: '津波注意報' },
     { codes: ['71','00','04'], label: '津波予報' },

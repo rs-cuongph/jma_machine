@@ -348,12 +348,13 @@ function formTsunami() {
 
 function initTsunamiRows() {
   // Add 2 default rows
-  addTsunamiRow('岩手県', '210', '53', '53', '大津波警報：発表', '', 'NaN', '巨大');
-  addTsunamiRow('宮城県', '220', '53', '53', '大津波警報：発表', '2011-03-11T15:00:00+09:00', 'NaN', '巨大');
+  addTsunamiRow('岩手県', '210', '52', '52', '大津波警報：発表', '', 'NaN', '巨大');
+  addTsunamiRow('宮城県', '220', '52', '52', '大津波警報：発表', '2011-03-11T15:00:00+09:00', 'NaN', '巨大');
 }
 
 const TSUNAMI_KINDS = [
-  {code:'53',name:'大津波警報：発表',issuedCode:'53'},
+  {code:'53',name:'大津波警報',issuedCode:'53'},
+  {code:'52',name:'大津波警報：発表',issuedCode:'52'},
   {code:'51',name:'津波警報',issuedCode:'51'},
   {code:'62',name:'津波注意報',issuedCode:'62'},
   {code:'71',name:'津波予報（若干の海面変動）',issuedCode:'71'},
