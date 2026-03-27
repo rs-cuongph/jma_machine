@@ -22,8 +22,9 @@ function getEntriesForCategories(categories, baseUrl) {
         const ctrlTitle = xml.match(/<Control>[\s\S]*?<Title>([\s\S]*?)<\/Title>/)?.[1]?.trim();
         const dt = xml.match(/<DateTime>([\s\S]*?)<\/DateTime>/)?.[1]?.trim();
         const headline = xml.match(/<Headline>[\s\S]*?<Text>([\s\S]*?)<\/Text>/)?.[1]?.trim();
-        if (headTitle) title = headTitle;
-        else if (ctrlTitle) title = ctrlTitle;
+        // Entry title must follow bulletin detail in Control/Title first.
+        if (ctrlTitle) title = ctrlTitle;
+        else if (headTitle) title = headTitle;
         if (dt) updated = dt;
         if (headline) content = headline.replace(/\n/g, '');
       } catch (_) {}
